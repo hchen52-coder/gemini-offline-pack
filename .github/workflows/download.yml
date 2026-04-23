@@ -1,6 +1,9 @@
 name: Download and Release Gemini CLI
 
 on:
+  push:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       version:
