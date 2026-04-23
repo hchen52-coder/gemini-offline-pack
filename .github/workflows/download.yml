@@ -1,0 +1,55 @@
+name: Download and Release Gemini CLI
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Gemini CLI version'
+        required: false
+        default: '0.39.0'
+        type: string
+
+jobs:
+  download-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download npm package
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [ -z "$VERSION" ]; then
+            VERSION="0.39.0"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          npm pack @google/gemini-cli@$VERSION
+
+      - name: List files
+        run: |
+          ls -la
+
+      - name: Extract package name
+        id: pkg
+        run: |
+          FILENAME=$(ls google-gemini-cli-*.tgz | head -1)
+          echo "filename=$FILENAME" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Gemini CLI v${{ env.VERSION }} Offline Package
+          files: ${{ steps.pkg.outputs.filename }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ env.VERSION }}

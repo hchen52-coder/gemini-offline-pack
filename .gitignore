@@ -1,0 +1,4 @@
+# 忽略文件
+*.tgz
+node_modules/
+.DS_Store
